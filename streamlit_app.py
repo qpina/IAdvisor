@@ -4,7 +4,7 @@ import io
 import os
 from dotenv import load_dotenv
 
-from langchain.chat_models import ChatTogether
+from langchain_community.chat_models import ChatTogether
 from langchain.prompts import PromptTemplate
 
 # Cargar API key desde .env o secrets
