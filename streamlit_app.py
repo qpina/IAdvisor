@@ -14,50 +14,54 @@ DEFAULT_CONFIG = {
 st.set_page_config(page_title="IAdvisor", layout="centered")
 st.image("logo.png", width=100)
 st.title("IAdvisor")
-st.markdown("### Haz preguntas sobre tus documentos financieros")
+st.markdown("### Haz preguntas sobre tus documentos financieros o simplemente consulta tus dudas")
 
 # Inputs del usuario
 question = st.text_area("Escribe tu pregunta", placeholder="¿Cuánto IRPF me han retenido?", height=100)
-uploaded_file = st.file_uploader("Sube tu nómina o archivo financiero", type=["pdf", "txt"])
+uploaded_file = st.file_uploader("Sube tu nómina o archivo financiero (opcional)", type=["pdf", "txt"])
 
-if uploaded_file and question:
-    try:
-        if uploaded_file.name.endswith(".pdf"):
-            pdf_reader = PyPDF2.PdfReader(io.BytesIO(uploaded_file.read()))
-            file_contents = ""
-            for page in pdf_reader.pages:
-                file_contents += page.extract_text() + "\n"
-        else:
-            file_contents = uploaded_file.read().decode("utf-8")
+if question:
+    file_contents = ""
+    if uploaded_file:
+        try:
+            if uploaded_file.name.endswith(".pdf"):
+                pdf_reader = PyPDF2.PdfReader(io.BytesIO(uploaded_file.read()))
+                for page in pdf_reader.pages:
+                    file_contents += page.extract_text() + "\n"
+            else:
+                file_contents = uploaded_file.read().decode("utf-8")
+        except Exception as e:
+            st.error(f"Error al leer el archivo: {e}")
+            st.stop()
 
-        # Crear el prompt y llamar al modelo
-        llm = init_chat_model(model=DEFAULT_CONFIG["model"])
-
-        prompt_template = PromptTemplate(
-            template="""You are an expert in economic and financial analysis.
+    # Crear el prompt dependiendo de si hay archivo o no
+    if file_contents:
+        prompt_text = f"""You are an expert in economic and financial analysis.
 
 {question}
 
 You are given a file for extra information.
 
 {file_contents}
-""",
-            input_variables=["question", "file_contents"]
-        )
+"""
+    else:
+        prompt_text = f"""You are an expert in economic and financial analysis.
 
-        prompt = prompt_template.format(question=question, file_contents=file_contents)
+{question}
+"""
 
+    # Llamar al modelo
+    try:
+        llm = init_chat_model(model=DEFAULT_CONFIG["model"])
         with st.spinner("Procesando..."):
-            answer = llm.invoke(prompt).content
+            answer = llm.invoke(prompt_text).content
             try:
                 parsed_answer = answer.split("</think>")[1].strip()
             except IndexError:
                 parsed_answer = answer
-
         st.subheader("Respuesta:")
         st.markdown(parsed_answer)
-
     except Exception as e:
-        st.error(f"Error al procesar el archivo: {e}")
-elif uploaded_file or question:
-    st.info("Por favor, sube un archivo y escribe una pregunta para continuar.")
+        st.error(f"Error al invocar el modelo de lenguaje: {e}")
+else:
+    st.info("Escribe una pregunta para comenzar.")
