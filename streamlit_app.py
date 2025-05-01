@@ -25,7 +25,12 @@ st.markdown("### Haz preguntas sobre tus documentos financieros o simplemente co
 question = st.text_area("Escribe tu pregunta", placeholder="¿Cuánto IRPF me han retenido?", height=100)
 uploaded_file = st.file_uploader("Sube tu nómina o archivo financiero (opcional)", type=["pdf", "txt"])
 
-if question:
+# Botón para procesar la pregunta
+if st.button("Enviar pregunta"):
+    if not question:
+        st.warning("Por favor, escribe una pregunta antes de enviar.")
+        st.stop()
+
     file_contents = ""
     if uploaded_file:
         try:
@@ -70,5 +75,3 @@ You are given a file for extra information.
         st.markdown(answer)
     except Exception as e:
         st.error(f"Error al invocar el modelo de Together AI: {e}")
-else:
-    st.info("Escribe una pregunta para comenzar.")
