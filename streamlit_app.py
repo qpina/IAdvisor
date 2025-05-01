@@ -4,7 +4,7 @@ import io
 import os
 from dotenv import load_dotenv
 
-from langchain_community.chat_models import ChatTogether
+from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 
 # Cargar API key desde .env o secrets
@@ -55,10 +55,11 @@ You are given a file for extra information.
 {question}
 """
 
-    # Llamar al modelo de Together AI (Mistral)
+    # Llamar a Together.ai como si fuera OpenAI
     try:
-        llm = ChatTogether(
-            together_api_key=together_api_key,
+        llm = ChatOpenAI(
+            openai_api_key=together_api_key,
+            base_url="https://api.together.xyz/v1",
             model="mistralai/Mistral-7B-Instruct-v0.2",
             temperature=0.4,
             max_tokens=1024
