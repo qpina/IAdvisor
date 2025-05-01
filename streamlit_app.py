@@ -4,15 +4,15 @@ import io
 import os
 from dotenv import load_dotenv
 
-from langchain.chat_models import ChatOpenAI
+from langchain.chat_models import ChatTogether
 from langchain.prompts import PromptTemplate
 
-# Cargar API key desde .env
+# Cargar API key desde .env o secrets
 load_dotenv()
-openai_api_key = os.getenv("OPENAI_API_KEY")
+together_api_key = os.getenv("TOGETHER_API_KEY")
 
-if not openai_api_key:
-    st.error("No se encontró la API key de OpenAI. Asegúrate de definir OPENAI_API_KEY en un archivo .env.")
+if not together_api_key:
+    st.error("No se encontró la API key de Together AI. Asegúrate de definir TOGETHER_API_KEY en un archivo .env o en los secretos de Streamlit.")
     st.stop()
 
 # Título y logo
@@ -55,14 +55,19 @@ You are given a file for extra information.
 {question}
 """
 
-    # Llamar al modelo de OpenAI
+    # Llamar al modelo de Together AI (Mistral)
     try:
-        llm = ChatOpenAI(openai_api_key=openai_api_key, temperature=0.4, model="gpt-3.5-turbo")
+        llm = ChatTogether(
+            together_api_key=together_api_key,
+            model="mistralai/Mistral-7B-Instruct-v0.2",
+            temperature=0.4,
+            max_tokens=1024
+        )
         with st.spinner("Procesando..."):
             answer = llm.invoke(prompt_text).content
         st.subheader("Respuesta:")
         st.markdown(answer)
     except Exception as e:
-        st.error(f"Error al invocar el modelo de OpenAI: {e}")
+        st.error(f"Error al invocar el modelo de Together AI: {e}")
 else:
     st.info("Escribe una pregunta para comenzar.")
