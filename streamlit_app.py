@@ -1,14 +1,19 @@
 import streamlit as st
 import PyPDF2
 import io
+import os
+from dotenv import load_dotenv
 
-from langchain.chat_models import init_chat_model
+from langchain.chat_models import ChatOpenAI
 from langchain.prompts import PromptTemplate
 
-# Configuración del modelo LLM
-DEFAULT_CONFIG = {
-    "model": "ollama:deepseek-r1:1.5b",
-}
+# Cargar API key desde .env
+load_dotenv()
+openai_api_key = os.getenv("OPENAI_API_KEY")
+
+if not openai_api_key:
+    st.error("No se encontró la API key de OpenAI. Asegúrate de definir OPENAI_API_KEY en un archivo .env.")
+    st.stop()
 
 # Título y logo
 st.set_page_config(page_title="IAdvisor", layout="centered")
@@ -50,18 +55,14 @@ You are given a file for extra information.
 {question}
 """
 
-    # Llamar al modelo
+    # Llamar al modelo de OpenAI
     try:
-        llm = init_chat_model(model=DEFAULT_CONFIG["model"])
+        llm = ChatOpenAI(openai_api_key=openai_api_key, temperature=0.4, model="gpt-3.5-turbo")
         with st.spinner("Procesando..."):
             answer = llm.invoke(prompt_text).content
-            try:
-                parsed_answer = answer.split("</think>")[1].strip()
-            except IndexError:
-                parsed_answer = answer
         st.subheader("Respuesta:")
-        st.markdown(parsed_answer)
+        st.markdown(answer)
     except Exception as e:
-        st.error(f"Error al invocar el modelo de lenguaje: {e}")
+        st.error(f"Error al invocar el modelo de OpenAI: {e}")
 else:
     st.info("Escribe una pregunta para comenzar.")
